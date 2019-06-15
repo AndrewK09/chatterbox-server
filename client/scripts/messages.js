@@ -2,7 +2,7 @@ var Messages = {
   _data: {},
 
   items: function() {
-    return _.chain(Object.values(Messages._data)).sortBy("createdAt");
+    return _.chain(Object.values(Messages._data)).sortBy('createdAt');
   },
 
   add: function(message, callback = () => {}) {
@@ -25,9 +25,9 @@ var Messages = {
 
   _conform: function(message) {
     // ensure each message object conforms to expected shape
-    message.text = message.text || "";
-    message.username = message.username || "";
-    message.roomname = message.roomname || "lobby";
+    message.text = message.text || '';
+    message.username = message.username || '';
+    message.roomname = message.roomname || 'lobby';
     return message;
   }
 };

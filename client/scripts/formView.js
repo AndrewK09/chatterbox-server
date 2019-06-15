@@ -1,8 +1,8 @@
 var FormView = {
-  $form: $("form"),
+  $form: $('form'),
 
   initialize: function() {
-    FormView.$form.on("submit", FormView.handleSubmit);
+    FormView.$form.on('submit', FormView.handleSubmit);
   },
 
   handleSubmit: function(event) {
@@ -11,8 +11,8 @@ var FormView = {
 
     var message = {
       username: App.username,
-      text: FormView.$form.find("#message").val(),
-      roomname: Rooms.selected || "lobby",
+      text: FormView.$form.find('#message').val(),
+      roomname: Rooms.selected || 'lobby',
       objectId: Date.now()
     };
 
@@ -23,7 +23,7 @@ var FormView = {
   },
 
   setStatus: function(active) {
-    var status = active ? "true" : null;
-    FormView.$form.find("input[type=submit]").attr("disabled", status);
+    var status = active ? 'true' : null;
+    FormView.$form.find('input[type=submit]').attr('disabled', status);
   }
 };

@@ -1,7 +1,7 @@
 var App = {
-  $spinner: $(".spinner img"),
+  $spinner: $('.spinner img'),
 
-  username: "anonymous",
+  username: 'anonymous',
 
   initialize: function() {
     App.username = window.location.search.substr(10);
@@ -38,7 +38,7 @@ var App = {
   },
 
   stopSpinner: function() {
-    App.$spinner.fadeOut("fast");
+    App.$spinner.fadeOut('fast');
     FormView.setStatus(false);
   }
 };
