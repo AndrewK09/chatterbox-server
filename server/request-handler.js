@@ -11,22 +11,20 @@ this file and include it in basic-server.js so that it actually works.
 *Hint* Check out the node module documentation at http://nodejs.org/api/modules.html.
 **************************************************************/
 var fs = require('fs');
+const urlParser = require('url');
 var storage;
-
 var defaultCorsHeaders = {
   'access-control-allow-origin': '*',
   'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'access-control-allow-headers': 'content-type, accept',
+  'access-control-allow-headers': 'content-type, application/json',
   'access-control-max-age': 10 // Seconds.
 };
 
-var handleFile = function(err, data) {
+var handleError = function(err, data) {
   if (err) {
     throw err;
   }
-  storage = JSON.parse(data);
 };
-
 var requestHandler = function(request, response) {
   console.log(
     'Serving request type ' + request.method + ' for url ' + request.url
@@ -34,50 +32,65 @@ var requestHandler = function(request, response) {
 
   var headers = defaultCorsHeaders;
   headers['Content-Type'] = 'application/JSON';
-
-  if (!request.url.includes('classes/messages')) {
-    response.writeHead(404, headers);
-    response.end();
-  } else {
-    //have to stringify
+  const url = urlParser.parse(request.url).pathname;
+  if (url.includes('classes/messages')) {
     if (request.method === 'GET') {
-      response.writeHead(200, headers);
-      fs.readFile('./server/storage.JSON', handleFile);
-      response.end(JSON.stringify(storage));
+      fs.readFile('./server/storage.JSON', function(err, data) {
+        if (err) { throw err; }
+        storage = JSON.parse(data);
+        sendReponse(response, storage, headers, 200);
+      });
     } else if (request.method === 'POST') {
-      var newMsg = [];
-      request
-        .on('data', chunk => {
-          newMsg.push(chunk);
-          newMsg = JSON.parse(Buffer.concat(newMsg).toString());
-        })
-        .on('end', () => {
-          response.writeHead(200, headers);
-          fs.readFile('./server/storage.JSON', function(err, data) {
-            if (err) {
-              throw err;
-            }
-            storage = JSON.parse(data);
-            response.end(JSON.stringify(storage));
-            storage.results.push(newMsg);
+      collectData(request, newMsg => {
+        newMsg.objectId = Date.now();
+        fs.readFile('./server/storage.JSON', function(err, data) {
+          if (err) {
+            throw err;
+          }
+          storage = JSON.parse(data);
+          storage.results.push(newMsg);
 
-            fs.writeFile(
-              './server/storage.JSON',
-              JSON.stringify(storage),
-              function(err) {
-                if (err) {
-                  throw err;
-                }
-                console.log('Saved!');
-              }
-            );
-          });
+          fs.writeFile(
+            './server/storage.JSON',
+            JSON.stringify(storage),
+            handleError
+          );
         });
+        sendReponse(response, newMsg, headers, 201);
+      });
     } else if (request.method === 'OPTIONS') {
       response.writeHead(200, headers);
       response.end();
+    } else {
+      sendError(response);
     }
+  } else {
+    send404(response);
   }
 };
 
+var send404 = function(response) {
+  response.writeHead(404, { 'Context-Type': 'text/plain' });
+  response.end();
+};
+
+var sendReponse = function(response, payload, headers = headers, status = 200) {
+  if (typeof payload === 'object' && payload !== null) {
+    payload = JSON.stringify(payload);
+  }
+  response.writeHead(status, headers);
+  response.end(payload);
+};
+
+var collectData = function(request, callback) {
+  var newMsg = '';
+  request
+    .on('data', chunk => {
+      newMsg += chunk.toString();
+    })
+    .on('end', function() {
+      var message = JSON.parse(newMsg);
+      callback(message);
+    });
+};
 exports.requestHandler = requestHandler;
