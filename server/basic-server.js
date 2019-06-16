@@ -7,14 +7,10 @@ const logger = require("./middleware/logger.js").logger;
 const port = 3000;
 const ip = "127.0.0.1";
 
-//Init middleware
 // app.use(logger);
 
-//Body parser middlware
 app.use(express.json());
-// app.use(express.urlencoded({extended: false}))
 
-//repsonse to get request
 app.get("/classes/messages", (req, res) => {
   fs.readFile("./server/storage.JSON", function(err, data) {
     if (err) {
@@ -24,7 +20,6 @@ app.get("/classes/messages", (req, res) => {
   });
 });
 
-//create member
 app.post("/classes/messages", (req, res) => {
   req.body.objectId = Date.now();
   res.send(req.body);
@@ -48,7 +43,6 @@ app.post("/classes/messages", (req, res) => {
   });
 });
 
-//set static folder
 app.use(express.static("/Users/admin/hrnyc23-chatterbox-server/client"));
 
 app.listen(port, ip, () => {
