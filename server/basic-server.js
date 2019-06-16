@@ -1,40 +1,56 @@
 /* Import node's http module: */
-var handleRequest = require('./request-handler.js').requestHandler;
-var http = require('http');
+const express = require("express");
+const app = express();
+var fs = require("fs");
+const logger = require("./middleware/logger.js").logger;
 
-// Every server needs to listen on a port with a unique number. The
-// standard port for HTTP servers is port 80, but that port is
-// normally already claimed by another server and/or not accessible
-// so we'll use a standard testing port like 3000, other common development
-// ports are 8080 and 1337.
-var port = 3000;
+const port = 3000;
+const ip = "127.0.0.1";
 
-// For now, since you're running this server on your local machine,
-// we'll have it listen on the IP address 127.0.0.1, which is a
-// special address that always refers to localhost.
-var ip = '127.0.0.1';
+//Init middleware
+// app.use(logger);
 
-// We use node's http module to create a server.
-//
-// The function we pass to http.createServer will be used to handle all
-// incoming requests.
-//
-// After creating the server, we will tell it to listen on the given port and IP. */
-var server = http.createServer(handleRequest);
+//Body parser middlware
+app.use(express.json());
+// app.use(express.urlencoded({extended: false}))
 
-server.listen(port, ip, () => {
-  console.log('Listening on http://' + ip + ':' + port);
+//repsonse to get request
+app.get("/classes/messages", (req, res) => {
+  fs.readFile("./server/storage.JSON", function(err, data) {
+    if (err) {
+      throw err;
+    }
+    res.send(JSON.parse(data));
+  });
 });
 
-// To start this server, run:
-//
-//   node basic-server.js
-//
-// on the command line.
-//
-// To connect to the server, load http://127.0.0.1:3000 in your web
-// browser.
-//
-// server.listen() will continue running as long as there is the
-// possibility of serving more requests. To stop your server, hit
-// Ctrl-C on the command line.
+//create member
+app.post("/classes/messages", (req, res) => {
+  req.body.objectId = Date.now();
+  res.send(req.body);
+  var newMsg = req.body;
+
+  fs.readFile("./server/storage.JSON", function(err, data) {
+    if (err) {
+      throw err;
+    }
+    var storage = JSON.parse(data);
+    storage.results.push(newMsg);
+
+    fs.writeFile("./server/storage.JSON", JSON.stringify(storage), function(
+      err,
+      data
+    ) {
+      if (err) {
+        throw err;
+      }
+    });
+  });
+});
+
+//set static folder
+app.use(express.static("/Users/admin/hrnyc23-chatterbox-server/client"));
+
+app.listen(port, ip, () => {
+  console.log("Listening on http://" + ip + ":" + port);
+});
