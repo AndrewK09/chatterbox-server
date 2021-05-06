@@ -32,6 +32,6 @@
   "dependencies": {
     "express": "^4.17.1",
     "mongodb": "^3.2.7",
-    "underscore": "^1.9.1"
+    "underscore": "^1.12.1"
   }
 }
